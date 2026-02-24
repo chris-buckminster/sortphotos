@@ -8,9 +8,13 @@ SortPhotos is a Python script that organizes photos into folders by date and/or 
 
 # Install
 
-    python setup.py install
- 
- Note that in addition to python you must have perl installed as the underlying exif library depends on perl.
+Requires Python 3.9+ and Perl (for the bundled ExifTool).
+
+    pip install .
+
+Or for development:
+
+    pip install -e ".[dev]"
 
 # Usage
 
@@ -31,16 +35,16 @@ There are several options that can be invoked.  For example the default behavior
 
 By default, only the top level of the source directory is searched for files.  This is useful if you dump photos into your top directory and then want them to sort.  If you want to search recursively, use the ``-r`` or ``--recursive`` flag.
 
-## silence progress updates
+## verbosity control
 
-If you don't want to see details on file processing use the ``-s`` or ``--silent`` flag.  It will still show overall progress.
+By default a progress bar and summary are shown.  Use ``-v`` or ``--verbose`` for detailed per-file processing information (DEBUG level).  Use ``-s``/``--silent`` or ``--quiet`` to suppress all output except errors.
 
 ## test mode
 
-If you just want to simulate what is going to happen with your command use the ``-t`` or ``--test`` flag.  No files will be moved or copied, but all the moves will be simulated showing you how the files would be reorganized/renamed.  
+If you just want to simulate what is going to happen with your command use the ``-t`` or ``--test`` flag.  No files will be moved or copied, but all the moves will be simulated showing you how the files would be reorganized/renamed.  A summary of what would happen is printed at the end.
 
 ## sort in directories
-By default folders are sorted by year then month, with both the month number and name.  So for example if cool_picture.jpg was taken on June 1, 2010 the resulting directory hierarchy will look like: 2010 > 06-Jun > cool_picture.jpg.  However, you can customize the sorting style almost anyway you want.  The script takes an optional argument ``-s`` or ``--sort``, which accepts a format string using the conventions described [here](https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior).  To separate by subdirectory, just use a forward slash (even if you are on Windows).    So for example, the default sorting behavior (2010/06-Jun) is equivalent to:
+By default folders are sorted by year then month, with both the month number and name.  So for example if cool_picture.jpg was taken on June 1, 2010 the resulting directory hierarchy will look like: 2010 > 06-Jun > cool_picture.jpg.  However, you can customize the sorting style almost anyway you want.  The script takes an optional argument ``-s`` or ``--sort``, which accepts a format string using the conventions described [here](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior).  To separate by subdirectory, just use a forward slash (even if you are on Windows).    So for example, the default sorting behavior (2010/06-Jun) is equivalent to:
 
     python sortphotos.py --sort %Y/%m-%b
 
@@ -56,7 +60,7 @@ The possibilities go on and on.
 
 ## automatic renaming of files
 
-You can setup the script to automatically rename your files according to the same convention.  This uses the same conventions for directory sorting and is described [here](https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior).  For example you could rename all of your files to contain the year, month, day, hour, and minute by using
+You can setup the script to automatically rename your files according to the same convention.  This uses the same conventions for directory sorting and is described [here](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior).  For example you could rename all of your files to contain the year, month, day, hour, and minute by using
 
     python sortphotos.py --rename %Y_%m%d_%H%M
 
@@ -120,6 +124,20 @@ However, this option will copy even hidden files like .DS_Store. -->
 <!-- ## ignore EXIF
 If you don't want to use EXIF data at all (even if it exists) and just use time stamps you can add the ``--ignore-exif`` flag.
  -->
+
+## exclude files by pattern
+
+You can exclude certain files from being processed using glob patterns with ``--exclude``.  For example, to skip all RAW files:
+
+    sortphotos --exclude "*.raw" "*.cr2" /source /destination
+
+## parallel file operations
+
+For large collections, you can speed up the copy/move step by using multiple workers with ``-j`` or ``--jobs``:
+
+    sortphotos -j 4 /source /destination
+
+The default is ``-j 1`` (serial processing).
 
 ## change time of day when the day "begins"
 If you are taking photos for an event that goes past midnight, you might want the early morning photos to be grouped with those from the previous day.  By default the new day begins at midnight, but if you wanted any photos taken before 4AM to be grouped with the previous day you can use  
